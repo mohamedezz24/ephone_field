@@ -198,8 +198,10 @@ class _EphoneFieldState extends State<EPhoneField> {
       controller: _controller,
       focusNode: _focusNode,
       autovalidateMode: widget.autovalidateMode,
-      onChanged: _type.onChanged(_selectedCountry, widget.phoneNumberMaskSplitter, widget.onChanged),
-      onSaved: _type.onSaved(_selectedCountry, widget.phoneNumberMaskSplitter, widget.onSaved),
+      onChanged: _type.onChanged(
+          _selectedCountry, widget.phoneNumberMaskSplitter, widget.onChanged),
+      onSaved: _type.onSaved(
+          _selectedCountry, widget.phoneNumberMaskSplitter, widget.onSaved),
       onFieldSubmitted: _type.onFieldSubmitted(
         _selectedCountry,
         widget.phoneNumberMaskSplitter,
@@ -207,42 +209,81 @@ class _EphoneFieldState extends State<EPhoneField> {
       ),
       initialValue: widget.initialValue,
       decoration: widget.decoration.copyWith(
-          prefixIcon: _buildCountryPicker(_type == EphoneFieldType.phone),
-          labelText: _type.labelText(widget.emptyLabelText, widget.emailLabelText, widget.phoneLabelText)),
+        prefixIcon: _buildCountryPicker(_type == EphoneFieldType.phone),
+      ),
       keyboardType: _type.keyboardType,
       validator: _type.validator(
         _selectedValidator,
         _selectedCountry,
         widget.phoneNumberMaskSplitter,
       ),
-      inputFormatters:
-          widget.inputFormatters ?? _type.inputFormatters(_selectedCountry, widget.phoneNumberMaskSplitter),
+      inputFormatters: widget.inputFormatters ??
+          _type.inputFormatters(
+              _selectedCountry, widget.phoneNumberMaskSplitter),
     );
   }
 
   /// Builds the [CountryPickerButton] if the [_type] is [EphoneFieldType.phone].
   Widget? _buildCountryPicker(bool isPhoneFieldSelected) {
-    return isPhoneFieldSelected
-        ? CountryPickerButton(
-            initialValue: _selectedCountry,
-            onValuePicked: (Country country) {
-              setState(() {
-                _selectedCountry = country;
-                widget.onCountryChanged?.call(country);
-                _focusNode.requestFocus();
-              });
-            },
-            menuType: widget.menuType,
-            isSearchable: widget.isSearchable,
-            searchInputDecoration: widget.searchInputDecoration,
-            titlePadding: widget.titlePadding,
-            title: widget.title,
-            countries: widget.countries,
-            width: widget.countryPickerButtonWidth,
-            icon: widget.countryPickerButtonIcon,
-            pickerHeight: widget.pickerHeight,
-          )
-        : null;
+    Widget child;
+
+    // Determine which widget to display
+    if (isPhoneFieldSelected) {
+      child = CountryPickerButton(
+        key: ValueKey('CountryPicker'),
+        initialValue: _selectedCountry,
+        onValuePicked: (Country country) {
+          setState(() {
+            _selectedCountry = country;
+            widget.onCountryChanged?.call(country);
+            _focusNode.requestFocus();
+          });
+        },
+        menuType: widget.menuType,
+        isSearchable: widget.isSearchable,
+        searchInputDecoration: widget.searchInputDecoration,
+        titlePadding: widget.titlePadding,
+        title: widget.title,
+        countries: widget.countries,
+        width: widget.countryPickerButtonWidth,
+        icon: widget.countryPickerButtonIcon,
+        pickerHeight: widget.pickerHeight,
+      );
+    } else {
+      child = widget.decoration.prefixIcon ?? const SizedBox();
+    }
+
+    // Determine the text direction of the current context
+    bool isRTL = Directionality.of(context) == TextDirection.rtl;
+
+    // AnimatedSwitcher with conditional SlideTransition and FadeTransition based on text direction
+    return ClipRect(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          var slideInOffset = isRTL
+              ? (child.key == ValueKey('CountryPicker')
+                  ? Offset(1.0, 0.0)
+                  : Offset(-1.0, 0.0))
+              : (child.key == ValueKey('CountryPicker')
+                  ? Offset(-1.0, 0.0)
+                  : Offset(1.0, 0.0));
+          var slideOutOffset = Offset.zero;
+          var slideAnimation =
+              Tween<Offset>(begin: slideInOffset, end: slideOutOffset)
+                  .animate(animation);
+
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: slideAnimation,
+              child: child,
+            ),
+          );
+        },
+        child: child,
+      ),
+    );
   }
 
   /// Updates the [_type] of the input field based on the [_controller] text.
@@ -271,7 +312,8 @@ class _EphoneFieldState extends State<EPhoneField> {
       case EphoneFieldType.initial:
         _selectedValidator = widget.emptyErrorText == null
             ? null
-            : (value) => value == null || value.isEmpty ? widget.emptyErrorText : null;
+            : (value) =>
+                value == null || value.isEmpty ? widget.emptyErrorText : null;
         break;
       case EphoneFieldType.email:
         _selectedValidator = widget.emailValidator;
