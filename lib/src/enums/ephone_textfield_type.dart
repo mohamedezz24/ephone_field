@@ -116,7 +116,7 @@ extension EPhoneTextFielExtension on EphoneFieldType {
       case EphoneFieldType.phone:
         return (value) => onChanged?.call(EphoneFieldUtils.combinePrefix(
                 country.dialCode, value, maskSplitCharacter) ??
-            country.dialCode.toString());
+            '');
     }
   }
 }
