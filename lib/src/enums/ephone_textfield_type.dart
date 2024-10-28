@@ -106,17 +106,24 @@ extension EPhoneTextFielExtension on EphoneFieldType {
 
   /// Returns the hint text of the [EphoneField] based on the [EphoneFieldType] enum
   /// Given the [Country], [maskSplitCharacter] and [onChanged]
-  void Function(String)? onChanged(Country country, String? maskSplitCharacter,
-      void Function(String)? onChanged) {
+  void onChanged(Country country, String? maskSplitCharacter,
+      void Function(String)? onChanged, String value) {
     switch (this) {
       case EphoneFieldType.initial:
-        return onChanged;
+        onChanged?.call(value);
+        break;
       case EphoneFieldType.email:
-        return onChanged;
+        onChanged?.call(value);
+        break;
+      // case EphoneFieldType.phone:
+      //   return (value) => onChanged?.call(EphoneFieldUtils.combinePrefix(
+      //           country.dialCode, value, maskSplitCharacter) ??
+      //       '');
       case EphoneFieldType.phone:
-        return (value) => onChanged?.call(EphoneFieldUtils.combinePrefix(
+        onChanged?.call(EphoneFieldUtils.combinePrefix(
                 country.dialCode, value, maskSplitCharacter) ??
             '');
+        break;
     }
   }
 }

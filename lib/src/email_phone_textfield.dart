@@ -198,8 +198,10 @@ class _EphoneFieldState extends State<EPhoneField> {
       controller: _controller,
       focusNode: _focusNode,
       autovalidateMode: widget.autovalidateMode,
-      onChanged: _type.onChanged(
-          _selectedCountry, widget.phoneNumberMaskSplitter, widget.onChanged),
+      onChanged: (value) {
+        _type.onChanged(_selectedCountry, widget.phoneNumberMaskSplitter,
+            widget.onChanged, value);
+      },
       onSaved: _type.onSaved(
           _selectedCountry, widget.phoneNumberMaskSplitter, widget.onSaved),
       onFieldSubmitted: _type.onFieldSubmitted(
@@ -235,7 +237,11 @@ class _EphoneFieldState extends State<EPhoneField> {
         onValuePicked: (Country country) {
           setState(() {
             _selectedCountry = country;
+            //call the onChanged callback
+
             widget.onCountryChanged?.call(country);
+            _type.onChanged(country, widget.phoneNumberMaskSplitter,
+                widget.onChanged, _controller.text);
             _focusNode.requestFocus();
           });
         },
