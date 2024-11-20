@@ -45,10 +45,14 @@ class EPhoneField extends StatefulWidget {
     this.emptyErrorText,
     this.countryPickerButtonWidth = 108.0,
     this.autovalidateMode,
+    this.onTapOutside,
   }) : super(key: key);
 
   /// The [FocusNode] of the input field.
   final FocusNode? focusNode;
+
+  //On tap outside
+  final void Function(PointerDownEvent)? onTapOutside;
 
   /// The [TextEditingController] of the input field.
   final TextEditingController? controller;
@@ -172,6 +176,7 @@ class _EphoneFieldState extends State<EPhoneField> {
   late FocusNode _focusNode;
   late Country _selectedCountry;
   late String? Function(String?)? _selectedValidator;
+  void Function(PointerDownEvent)? _onTapOutside;
 
   @override
   void initState() {
@@ -181,6 +186,7 @@ class _EphoneFieldState extends State<EPhoneField> {
     _selectedCountry = widget.initialCountry;
     _controller = widget.controller ?? TextEditingController();
     _focusNode = widget.focusNode ?? FocusNode();
+    _onTapOutside = widget.onTapOutside;
     _controller.addListener(() => _updateTextFieldType());
     _controller.addListener(() => _updateSelectedValidator());
   }
@@ -197,6 +203,7 @@ class _EphoneFieldState extends State<EPhoneField> {
     return TextFormField(
       controller: _controller,
       focusNode: _focusNode,
+      onTapOutside: _onTapOutside,
       autovalidateMode: widget.autovalidateMode,
       onChanged: (value) {
         _type.onChanged(_selectedCountry, widget.phoneNumberMaskSplitter,
